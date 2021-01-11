@@ -1,6 +1,6 @@
 applications:
 - name: solution-finder
-memory: 64M
+memory: 256M
 instances: 1
 domain: mybluemix.net
 disk_quota: 256M
