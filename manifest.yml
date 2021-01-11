@@ -1,6 +1,5 @@
 applications:
-- name: sol-searcher
-path: build/
+- name: solution-finder
 memory: 64M
 instances: 1
 domain: mybluemix.net
