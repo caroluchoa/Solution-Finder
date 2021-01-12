@@ -4,7 +4,7 @@ sol-searcher.mybluemix.net
 
 # Video
 
-![](screen-capture.webm)
+![](screen-capture.gif)
 
 # Getting Started with Create React App
 
