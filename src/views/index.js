@@ -1,5 +1,5 @@
-import Search from "./search";
+import SearchPage from "./search";
 import Home from "./home";
 import Profile from "./Profile";
 
-export { Search, Home, Profile };
+export { SearchPage, Home, Profile };

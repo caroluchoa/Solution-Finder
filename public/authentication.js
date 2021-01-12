@@ -17,6 +17,7 @@ function saveUserInfo(token) {
   function initAPI() {
     SE.init({
       clientId: 19438,
+      clientSecret: 'BnMNJUl3zo*EqNE2MrlAxA((',
       key: 'KaWLnDpxcoaBkGJyGeUg4A((',
       channelUrl: `https://${window.location.hostname}/`,
       complete: auth

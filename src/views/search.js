@@ -1,48 +1,119 @@
-import React, {useState} from "react";
-import PropTypes from 'prop-types';
-import './search.css'
-import logo from "../assets/logo-stackoverflow.png";
+import React from "react";
+import NavBar from "../components/nav-bar";
+import Search from "../components/search";
+import Loader from "../components/loader";
+import LoadedBody from "../components/loaded-body";
+import Answer from "../components/answer";
 
-function Search({ searchFunction }) {
-  let [states, setStates] = useState({
-    value: ''
-  });
+var qs = require("querystring");
+var axios = require("axios");
 
-  function handleInput(e) {
-    setStates({
-      value: e.target.value
-    });
+class SearchPage extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.search = this.search.bind(this);
+    this.ansCounter = this.ansCounter.bind(this);
+    this.state = {
+      nav: <NavBar />,
+      body: (
+        <div>
+          <Search search={this.search} />
+        </div>
+      ),
+      answerlst: [],
+      noScoreAns: [],
+      ansCount: 0,
+    };
   }
+  ansCounter() {
+    this.setState({
+      ansCount: this.state.ansCount + 1,
+    });
+    return this.state.ansCount;
+  }
+  search(ev) {
+    if (ev.charCode === 13) {
+      var query = ev.target.value.trim();
 
-  function Find(e) {
-    if (states.value.length > 0 && searchFunction) {
-      searchFunction(states.value);
+      this.setState({
+        nav: <NavBar search={this.search} />,
+        body: <Loader />,
+      });
+      axios
+        .request({
+          url: "/stackoverflow/api/question/",
+          method: "POST",
+          data: qs.stringify({
+            query: query,
+          }),
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Access-Control-Allow-Origin": "*",
+          },
+        })
+        .then((gres) => {
+          var stackOverflowQuestionIds = [];
+          stackOverflowQuestionIds.forEach((qId) => {
+            axios
+              .request({
+                url: "/stackoverflow/api/question/" + qId,
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/x-www-form-urlencoded",
+                  "Access-Control-Allow-Origin": "*",
+                },
+              })
+              .then((sres) => {
+                sres.data.forEach((dta) => {
+                  console.log(dta);
+                  if (dta.replyScores.length) {
+                    let avg =
+                      dta.replyScores.reduce((x, y) => x + y) /
+                      dta.replyScores.length;
+                    console.log(avg);
+
+                    if (avg >= 0) {
+                      this.setState({
+                        answerlst: this.state.answerlst.concat(
+                          <Answer key={this.ansCounter()} answer={dta.answer} />
+                        ),
+                        body: (
+                          <LoadedBody
+                            answerlst={this.state.answerlst}
+                            noScoreAns={this.state.noScoreAns}
+                          />
+                        ),
+                      });
+                    }
+                  } else {
+                    this.setState({
+                      noScoreAns: this.state.noScoreAns.concat(
+                        <Answer key={this.ansCounter()} answer={dta.answer} />
+                      ),
+                      body: (
+                        <LoadedBody
+                          answerlst={this.state.answerlst}
+                          noScoreAns={this.state.noScoreAns}
+                        />
+                      ),
+                    });
+                  }
+                });
+              })
+              .catch((err) => console.log(err));
+          });
+        })
+        .catch((err) => console.log(err));
     }
   }
-
-  return (
-    <div>
-      <img className="logotype" src={logo} alt="stack-logo" width="120" />
-      <div className="wrap">
-        <div className="search">
-          <input
-            onChange={handleInput}
-            className="searchTerm"
-            value={states.value}
-            type="text"
-            placeholder="Search.."
-          />
-          <button onClick={Find} className="searchButton">
-            <i class="fa fa-search"></i>
-          </button>
-        </div>
+  render() {
+    return (
+      <div>
+        {this.state.body}
       </div>
-    </div>
-  )
+    );
+  }
 }
 
-Search.propTypes = {
-  searchFunction: PropTypes.func
-}
-
-export default Search;
+export default SearchPage;
